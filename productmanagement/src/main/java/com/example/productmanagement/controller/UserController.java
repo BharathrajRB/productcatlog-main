@@ -12,6 +12,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -81,11 +82,21 @@ public class UserController {
             User user = userService.findByEmailAndPassword(email, password);
             Product product = productService.getProductById(productId);
             if (user != null && product != null) {
-                CartItem cartItem = new CartItem();
-                cartItem.setProduct(product);
-                cartItem.setQuantity(quantity);
-                cartItem.setUser(user);
-                cartItemRepository.save(cartItem);
+
+                Optional<CartItem> existingCartItem = cartItemRepository.findByUserAndProduct(user, product);
+
+                if (existingCartItem.isPresent()) {
+                    CartItem cartItem = existingCartItem.get();
+                    cartItem.setQuantity(cartItem.getQuantity() + quantity);
+                    cartItemRepository.save(cartItem);
+
+                } else {
+                    CartItem cartItem = new CartItem();
+                    cartItem.setProduct(product);
+                    cartItem.setQuantity(quantity);
+                    cartItem.setUser(user);
+                    cartItemRepository.save(cartItem);
+                }
                 return new ResponseEntity<>("Product added to the cart successfully", HttpStatus.OK);
 
             } else {
