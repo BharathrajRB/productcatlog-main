@@ -80,31 +80,39 @@ public class UserController {
             String email = splitCredentials[0];
             String password = splitCredentials[1];
             User user = userService.findByEmailAndPassword(email, password);
-            Product product = productService.getProductById(productId);
-            if (user != null && product != null) {
+            if (user != null) {
+                Product product = productService.getProductById(productId);
 
-                Optional<CartItem> existingCartItem = cartItemRepository.findByUserAndProduct(user, product);
+                if (product != null) {
+                    if (quantity > product.getAvailableStock()) {
+                        return new ResponseEntity<>("Requested quantity exceeds available stock",
+                                HttpStatus.BAD_REQUEST);
+                    }
 
-                if (existingCartItem.isPresent()) {
-                    CartItem cartItem = existingCartItem.get();
-                    cartItem.setQuantity(cartItem.getQuantity() + quantity);
-                    cartItemRepository.save(cartItem);
+                    Optional<CartItem> existingCartItem = cartItemRepository.findByUserAndProduct(user, product);
 
+                    if (existingCartItem.isPresent()) {
+                        CartItem cartItem = existingCartItem.get();
+                        cartItem.setQuantity(cartItem.getQuantity() + quantity);
+                        cartItemRepository.save(cartItem);
+                    } else {
+                        CartItem cartItem = new CartItem();
+                        cartItem.setProduct(product);
+                        cartItem.setQuantity(quantity);
+                        cartItem.setUser(user);
+                        cartItemRepository.save(cartItem);
+                    }
+
+                    return new ResponseEntity<>("Product added to the cart successfully", HttpStatus.OK);
                 } else {
-                    CartItem cartItem = new CartItem();
-                    cartItem.setProduct(product);
-                    cartItem.setQuantity(quantity);
-                    cartItem.setUser(user);
-                    cartItemRepository.save(cartItem);
+                    return new ResponseEntity<>("Product not found", HttpStatus.NOT_FOUND);
                 }
-                return new ResponseEntity<>("Product added to the cart successfully", HttpStatus.OK);
-
             } else {
-                return new ResponseEntity<>("Product not found", HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>("Invalid credentials or user not found", HttpStatus.UNAUTHORIZED);
             }
 
         } catch (Exception e) {
-            return new ResponseEntity<>("error in handling", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Error in handling", HttpStatus.BAD_REQUEST);
         }
     }
 
