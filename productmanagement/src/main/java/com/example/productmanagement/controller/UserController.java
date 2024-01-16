@@ -8,6 +8,7 @@ import com.example.productmanagement.service.UserService;
 import com.example.productmanagement.service.ProductService;
 import com.example.productmanagement.service.UserAlreadyExistsException;
 
+import java.math.BigDecimal;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -113,6 +114,37 @@ public class UserController {
 
         } catch (Exception e) {
             return new ResponseEntity<>("Error in handling", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/viewcart")
+    public ResponseEntity<?> viewcart(@RequestHeader("Authorization") String authHeader) {
+
+        try {
+            String credentials = new String(Base64.getDecoder().decode(authHeader.split(" ")[1]));
+            String splitCredentials[] = credentials.split(":");
+            String email = splitCredentials[0];
+            String password = splitCredentials[1];
+            User user = userService.findByEmailAndPassword(email, password);
+            if (user != null) {
+                List<CartItem> cart = user.getCartItem();
+                if (cart.isEmpty()) {
+                    return new ResponseEntity<>("cart is empty", HttpStatus.OK);
+                }
+                BigDecimal totalprice = cart.stream()
+                        .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("totalprice", totalprice);
+                response.put("cartitems ", cart);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+
+            } else {
+                return new ResponseEntity<>("Invalid credentials user not found", HttpStatus.UNAUTHORIZED);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>("error in viewing cart", HttpStatus.BAD_REQUEST);
         }
     }
 
