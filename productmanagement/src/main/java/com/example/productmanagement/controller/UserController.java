@@ -70,59 +70,92 @@ public class UserController {
         }
     }
 
+    @PostMapping("/addtocart/{productId}")
+    public ResponseEntity<String> addtocart(@PathVariable Long productId, @RequestParam int quantity,
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String credentials = new String(Base64.getDecoder().decode(authHeader.split(" ")[1]));
+            String[] splitCredentials = credentials.split(":");
+            String email = splitCredentials[0];
+            String password = splitCredentials[1];
+            User user = userService.findByEmailAndPassword(email, password);
+            Product product = productService.getProductById(productId);
+            if (user != null && product != null) {
+                CartItem cartItem = new CartItem();
+                cartItem.setProduct(product);
+                cartItem.setQuantity(quantity);
+                cartItem.setUser(user);
+                cartItemRepository.save(cartItem);
+                return new ResponseEntity<>("Product added to the cart successfully", HttpStatus.OK);
+
+            } else {
+                return new ResponseEntity<>("Product not found", HttpStatus.NOT_FOUND);
+            }
+
+        } catch (Exception e) {
+            return new ResponseEntity<>("error in handling", HttpStatus.BAD_REQUEST);
+        }
+    }
+
     // @PostMapping("/addtocart/{productId}")
-    // public ResponseEntity<String> addtocart(@PathVariable Long productId, @RequestParam int quantity,
-    //         @RequestHeader("Authorization") String authHeader) {
-    //     try {
+    // public ResponseEntity<String> addtocart(@PathVariable Long productId,
+    // @RequestParam int quantity,
+    // @RequestHeader("Authorization") String authHeader) {
+    // try {
 
-    //         String credentials = new String(Base64.getDecoder().decode(authHeader.split(" ")[1]));
-    //         String[] splitCredentials = credentials.split(":");
-    //         String email = splitCredentials[0];
-    //         String password = splitCredentials[1];
+    // String credentials = new String(Base64.getDecoder().decode(authHeader.split("
+    // ")[1]));
+    // String[] splitCredentials = credentials.split(":");
+    // String email = splitCredentials[0];
+    // String password = splitCredentials[1];
 
-    //         User user = userService.getUserByemail(email);
-    //         Product product = productService.getProductById(productId);
-    //         System.out.println("product id");
+    // User user = userService.getUserByemail(email);
+    // Product product = productService.getProductById(productId);
+    // System.out.println("product id");
 
-    //         if (product != null) {
-    //             CartItem cartItem = new CartItem();
-    //             cartItem.setProduct(product);
-    //             cartItem.setQuantity(quantity);
-    //             cartItem.setUser(user);
-    //             cartItemRepository.save(cartItem);
-    //             return new ResponseEntity<>("product added to the cart successfully", HttpStatus.OK);
+    // if (product != null) {
+    // CartItem cartItem = new CartItem();
+    // cartItem.setProduct(product);
+    // cartItem.setQuantity(quantity);
+    // cartItem.setUser(user);
+    // cartItemRepository.save(cartItem);
+    // return new ResponseEntity<>("product added to the cart successfully",
+    // HttpStatus.OK);
 
-    //         } else {
-    //             return new ResponseEntity<>("product not found", HttpStatus.NOT_FOUND);
-    //         }
+    // } else {
+    // return new ResponseEntity<>("product not found", HttpStatus.NOT_FOUND);
+    // }
 
-    //     } catch (Exception e) {
-    //         return new ResponseEntity<>("error in adding product to cart", HttpStatus.BAD_REQUEST);
+    // } catch (Exception e) {
+    // return new ResponseEntity<>("error in adding product to cart",
+    // HttpStatus.BAD_REQUEST);
 
-    //     }
+    // }
     // }
 
     // @GetMapping("/viewcart")
-    // public ResponseEntity<?> viewcart(@RequestHeader("Authorization") String authHeader) {
-    //     try {
-    //         String credentials = new String(Base64.getDecoder().decode(authHeader.split(" ")[1]));
-    //         String[] splitCredentials = credentials.split(":");
-    //         String email = splitCredentials[0];
-    //         String password = splitCredentials[1];
-    //         User user = userService.getUserByemail(email);
-    //         List<CartItem> cartItems = user.getCartItems();
-    //         double totalPrice = cartItems.stream()
-    //                 .mapToDouble(item -> item.getProduct().getPrice() *
-    //                         item.getQuantity())
-    //                 .sum();
-    //         Map<String, Object> response = new HashMap<>();
-    //         response.put("cartItems", cartItems);
-    //         response.put("totalPrice", totalPrice);
-    //         return new ResponseEntity<>(response, HttpStatus.OK);
+    // public ResponseEntity<?> viewcart(@RequestHeader("Authorization") String
+    // authHeader) {
+    // try {
+    // String credentials = new String(Base64.getDecoder().decode(authHeader.split("
+    // ")[1]));
+    // String[] splitCredentials = credentials.split(":");
+    // String email = splitCredentials[0];
+    // String password = splitCredentials[1];
+    // User user = userService.getUserByemail(email);
+    // List<CartItem> cartItems = user.getCartItems();
+    // double totalPrice = cartItems.stream()
+    // .mapToDouble(item -> item.getProduct().getPrice() *
+    // item.getQuantity())
+    // .sum();
+    // Map<String, Object> response = new HashMap<>();
+    // response.put("cartItems", cartItems);
+    // response.put("totalPrice", totalPrice);
+    // return new ResponseEntity<>(response, HttpStatus.OK);
 
-    //     } catch (Exception e) {
-    //         return new ResponseEntity<>("error in viewing product",
-    //                 HttpStatus.BAD_REQUEST);
-    //     }
+    // } catch (Exception e) {
+    // return new ResponseEntity<>("error in viewing product",
+    // HttpStatus.BAD_REQUEST);
+    // }
     // }
 }

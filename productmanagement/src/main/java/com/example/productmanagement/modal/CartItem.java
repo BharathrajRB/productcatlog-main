@@ -20,6 +20,8 @@ public class CartItem {
     @JoinColumn(name = "user_id")
     private User user;
 
+    private int quantity;
+
     public Long getId() {
         return id;
     }
@@ -42,6 +44,14 @@ public class CartItem {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 
     // @Id
