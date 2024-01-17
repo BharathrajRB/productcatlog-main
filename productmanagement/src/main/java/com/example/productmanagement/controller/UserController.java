@@ -1,14 +1,20 @@
 package com.example.productmanagement.controller;
 
 import com.example.productmanagement.modal.CartItem;
+import com.example.productmanagement.modal.OrderItem;
+import com.example.productmanagement.modal.Orders;
 import com.example.productmanagement.modal.Product;
 import com.example.productmanagement.modal.User;
 import com.example.productmanagement.repository.CartItemRepository;
+import com.example.productmanagement.repository.OrderItemRepository;
+import com.example.productmanagement.repository.PaymentMethodRepository;
 import com.example.productmanagement.service.UserService;
 import com.example.productmanagement.service.ProductService;
 import com.example.productmanagement.service.UserAlreadyExistsException;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -31,13 +37,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-
+    @Autowired
+    private OrderItemRepository orderItemRepository;
     @Autowired
     private UserService userService;
     @Autowired
     private ProductService productService;
     @Autowired
     private CartItemRepository cartItemRepository;
+    @Autowired
+    private PaymentMethodRepository paymentMethodRepository;
 
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody User user) {
@@ -148,65 +157,125 @@ public class UserController {
         }
     }
 
-    // @PostMapping("/addtocart/{productId}")
-    // public ResponseEntity<String> addtocart(@PathVariable Long productId,
-    // @RequestParam int quantity,
-    // @RequestHeader("Authorization") String authHeader) {
-    // try {
+    @PostMapping("/checkout")
+    public ResponseEntity<String> checkout(@RequestHeader("Authorization") String authHeader,
+            @RequestParam("paymentMethodId") Long paymentMethodId,
+            @RequestParam("shippingAddress") String shippingAddress) {
+        try {
+            String credentials = new String(Base64.getDecoder().decode(authHeader.split(" ")[1]));
+            String splitCredentials[] = credentials.split(":");
+            String email = splitCredentials[0];
+            String password = splitCredentials[1];
+            User user = userService.findByEmailAndPassword(email, password);
 
-    // String credentials = new String(Base64.getDecoder().decode(authHeader.split("
-    // ")[1]));
-    // String[] splitCredentials = credentials.split(":");
-    // String email = splitCredentials[0];
-    // String password = splitCredentials[1];
+            if (user != null) {
+                List<CartItem> cartItems = cartItemRepository.findByUser(user);
 
-    // User user = userService.getUserByemail(email);
-    // Product product = productService.getProductById(productId);
-    // System.out.println("product id");
+                if (cartItems.isEmpty()) {
+                    return new ResponseEntity<>("Cart is empty", HttpStatus.BAD_REQUEST);
+                }
 
-    // if (product != null) {
-    // CartItem cartItem = new CartItem();
-    // cartItem.setProduct(product);
-    // cartItem.setQuantity(quantity);
-    // cartItem.setUser(user);
-    // cartItemRepository.save(cartItem);
-    // return new ResponseEntity<>("product added to the cart successfully",
-    // HttpStatus.OK);
+                BigDecimal totalPrice = cartItems.stream()
+                        .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-    // } else {
-    // return new ResponseEntity<>("product not found", HttpStatus.NOT_FOUND);
-    // }
+                Orders order = new Orders();
+                order.setUser(user);
+                order.setTotal_price(totalPrice);
+                order.setPayment_id(paymentMethodRepository.getById(paymentMethodId));
+                order.setShippingAddress(shippingAddress);
+                order.setOrderdate(new Timestamp(System.currentTimeMillis()));
 
-    // } catch (Exception e) {
-    // return new ResponseEntity<>("error in adding product to cart",
-    // HttpStatus.BAD_REQUEST);
+                List<OrderItem> orderItems = new ArrayList<>();
+                for (CartItem cartItem : cartItems) {
+                    if (cartItem.getQuantity() > cartItem.getProduct().getAvailableStock()) {
+                        return new ResponseEntity<>("Quantity is higher than available stock", HttpStatus.BAD_REQUEST);
+                    }
 
-    // }
-    // }
+                    OrderItem orderItem = new OrderItem();
+                    orderItem.setOrder(order);
+                    orderItem.setProduct(cartItem.getProduct());
+                    orderItem.setQuantity(cartItem.getQuantity());
+                    orderItem.setPrice(cartItem.getProduct().getPrice());
+                    orderItems.add(orderItem);
+                }
 
-    // @GetMapping("/viewcart")
-    // public ResponseEntity<?> viewcart(@RequestHeader("Authorization") String
-    // authHeader) {
-    // try {
-    // String credentials = new String(Base64.getDecoder().decode(authHeader.split("
-    // ")[1]));
-    // String[] splitCredentials = credentials.split(":");
-    // String email = splitCredentials[0];
-    // String password = splitCredentials[1];
-    // User user = userService.getUserByemail(email);
-    // List<CartItem> cartItems = user.getCartItems();
-    // double totalPrice = cartItems.stream()
-    // .mapToDouble(item -> item.getProduct().getPrice() *
-    // item.getQuantity())
-    // .sum();
-    // Map<String, Object> response = new HashMap<>();
-    // response.put("cartItems", cartItems);
-    // response.put("totalPrice", totalPrice);
-    // return new ResponseEntity<>(response, HttpStatus.OK);
+                // Save the order items
+                orderItemRepository.saveAll(orderItems);
 
-    // } catch (Exception e) {
-    // return new ResponseEntity<>("error in viewing product",
-    // HttpStatus.BAD_REQUEST);
-    // }
-    // }
+                // Clear the user's cart
+                cartItemRepository.deleteAll(cartItems);
+
+                return new ResponseEntity<>("Checkout successfully done", HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("Unauthorized user", HttpStatus.UNAUTHORIZED);
+            }
+
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error during checkout", HttpStatus.BAD_REQUEST);
+        }
+    }
+
 }
+
+// @PostMapping("/addtocart/{productId}")
+// public ResponseEntity<String> addtocart(@PathVariable Long productId,
+// @RequestParam int quantity,
+// @RequestHeader("Authorization") String authHeader) {
+// try {
+
+// String credentials = new String(Base64.getDecoder().decode(authHeader.split("
+// ")[1]));
+// String[] splitCredentials = credentials.split(":");
+// String email = splitCredentials[0];
+// String password = splitCredentials[1];
+
+// User user = userService.getUserByemail(email);
+// Product product = productService.getProductById(productId);
+// System.out.println("product id");
+
+// if (product != null) {
+// CartItem cartItem = new CartItem();
+// cartItem.setProduct(product);
+// cartItem.setQuantity(quantity);
+// cartItem.setUser(user);
+// cartItemRepository.save(cartItem);
+// return new ResponseEntity<>("product added to the cart successfully",
+// HttpStatus.OK);
+
+// } else {
+// return new ResponseEntity<>("product not found", HttpStatus.NOT_FOUND);
+// }
+
+// } catch (Exception e) {
+// return new ResponseEntity<>("error in adding product to cart",
+// HttpStatus.BAD_REQUEST);
+
+// }
+// }
+
+// @GetMapping("/viewcart")
+// public ResponseEntity<?> viewcart(@RequestHeader("Authorization") String
+// authHeader) {
+// try {
+// String credentials = new String(Base64.getDecoder().decode(authHeader.split("
+// ")[1]));
+// String[] splitCredentials = credentials.split(":");
+// String email = splitCredentials[0];
+// String password = splitCredentials[1];
+// User user = userService.getUserByemail(email);
+// List<CartItem> cartItems = user.getCartItems();
+// double totalPrice = cartItems.stream()
+// .mapToDouble(item -> item.getProduct().getPrice() *
+// item.getQuantity())
+// .sum();
+// Map<String, Object> response = new HashMap<>();
+// response.put("cartItems", cartItems);
+// response.put("totalPrice", totalPrice);
+// return new ResponseEntity<>(response, HttpStatus.OK);
+
+// } catch (Exception e) {
+// return new ResponseEntity<>("error in viewing product",
+// HttpStatus.BAD_REQUEST);
+// }
+// }

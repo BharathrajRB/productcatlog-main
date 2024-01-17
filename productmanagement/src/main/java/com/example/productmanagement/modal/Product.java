@@ -60,6 +60,10 @@ public class Product {
     return availableStock;
   }
 
+  public void updateAvailableStock(int quantity) {
+    availableStock -= quantity;
+  }
+
   public void setAvailableStock(int availableStock) {
     this.availableStock = availableStock;
   }

@@ -1,5 +1,7 @@
 package com.example.productmanagement.modal;
 
+import java.math.BigDecimal;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Entity;
@@ -22,6 +24,10 @@ public class CartItem {
     @JoinColumn(name = "user_id")
     @JsonIgnore
     private User user;
+
+    public BigDecimal calculateTotalPrice() {
+        return product.getPrice().multiply(BigDecimal.valueOf(quantity));
+    }
 
     private int quantity;
 
