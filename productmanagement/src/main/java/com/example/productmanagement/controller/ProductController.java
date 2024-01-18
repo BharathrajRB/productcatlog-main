@@ -30,6 +30,7 @@ public class ProductController {
   private ProductService productService;
   @Autowired
   private UserService userService;
+  @Autowired
   private ProductRepository productRepository;
 
   @PostMapping("/create")
