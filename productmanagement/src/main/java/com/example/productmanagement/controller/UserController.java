@@ -125,7 +125,7 @@ public class UserController {
             }
 
         } catch (Exception e) {
-            return new ResponseEntity<>("Error in handling", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("Error in handling....", HttpStatus.BAD_REQUEST);
         }
     }
 
