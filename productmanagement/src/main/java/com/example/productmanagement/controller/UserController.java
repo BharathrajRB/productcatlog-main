@@ -148,6 +148,62 @@ public class UserController {
         }
     }
 
-    
+    // @PostMapping("/checkout")
+    // public ResponseEntity<String> checkout(@RequestHeader("Authorization") String
+    // authHeader,
+    // @RequestParam("paymentMethodId") int paymentMethodId,
+    // @RequestParam("shippingAddress") String shippingAddress) {
+    // try {
+    // String credentials = new String(Base64.getDecoder().decode(authHeader.split("
+    // ")[1]));
+    // String splitCredentials[] = credentials.split(":");
+    // String email = splitCredentials[0];
+    // String password = splitCredentials[1];
+    // User user = userService.findByEmailAndPassword(email, password);
+    // // Optional<PaymentMethod> paymentMethod =
+    // // paymentMethodRepository.findById(paymentMethodId);
+    // // Long user_id=user.getId();
+
+    // PaymentMethod paymentMethod =
+    // paymentMethodRepository.findById(paymentMethodId);
+
+    // if (user != null) {
+    // List<CartItem> cart = user.getCartItem();
+    // System.out.println(cart);
+    // if (cart.isEmpty()) {
+    // return new ResponseEntity<>("the cart is empty", HttpStatus.BAD_REQUEST);
+
+    // } else {
+    // BigDecimal totalPrice = cart.stream().map(item ->
+    // item.getProduct().getPrice()
+    // .multiply(BigDecimal.valueOf(item.getQuantity()))).reduce(BigDecimal.ZERO,
+    // BigDecimal::add);
+
+    // Orders order = new Orders();
+    // order.setUser(user);
+    // order.setTotal_price(totalPrice);
+    // order.setPayment_id(paymentMethod);
+    // order.setShippingAddress(shippingAddress);
+    // order.setOrderdate(new Timestamp(System.currentTimeMillis()));
+
+    // List<OrderItem> orderItems = new ArrayList<>();
+    // for (CartItem cartItem : cart) {
+    // if (cartItem.getQuantity() > cartItem.getProduct().getAvailableStock())
+    // return new ResponseEntity<>("Quantity is higher than available quantity",
+    // HttpStatus.BAD_REQUEST);
+    // }
+    // OrderItem orderItem = new OrderItem();
+    // orderItem.setOrder(order);
+    // // orderItem.setProduct(cart.getProduct());
+
+    // }
+    // }
+    // return new ResponseEntity<>("ok", HttpStatus.OK);
+    // } catch (Exception e) {
+
+    // return new ResponseEntity<>("un", HttpStatus.UNAUTHORIZED);
+    // }
+
+    // }
 
 }
