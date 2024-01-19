@@ -69,6 +69,7 @@ public class UserController {
             String password = splitCredentials[1];
 
             User user = userService.findByEmailAndPassword(email, password);
+            // System.out.println("user " + user);
 
             if (user != null) {
                 String role = user.getRole_id().getName();
@@ -155,7 +156,9 @@ public class UserController {
             } else {
                 return new ResponseEntity<>("Invalid credentials user not found", HttpStatus.UNAUTHORIZED);
             }
-        } catch (Exception e) {
+        }
+
+        catch (Exception e) {
             return new ResponseEntity<>("error in viewing cart", HttpStatus.BAD_REQUEST);
         }
     }
@@ -215,29 +218,3 @@ public class UserController {
     }
 
 }
-
-/*
- * OrderItem orderItem = new OrderItem();
- * orderItem.setOrder(order);
- * orderItem.setProduct(cartItem.getProduct());
- * orderItem.setQuantity(cartItem.getQuantity());
- * orderItem.setPrice(cartItem.getProduct().getPrice());
- * orderItems.add(orderItem);
- * }
- * 
- * // Save the order items
- * orderItemRepository.saveAll(orderItems);
- * 
- * // Clear the user's cart
- * cartItemRepository.deleteAll(cartItems);
- * 
- * return new ResponseEntity<>("Checkout successfully done", HttpStatus.OK);
- * } else {
- * return new ResponseEntity<>("Unauthorized user", HttpStatus.UNAUTHORIZED);
- * }
- * 
- * } catch (Exception e) {
- * return new ResponseEntity<>("Error during checkout", HttpStatus.BAD_REQUEST);
- * }
- * }
- */
