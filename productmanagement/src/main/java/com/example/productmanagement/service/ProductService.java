@@ -31,7 +31,8 @@ public class ProductService {
       updateProduct.setPrice(product.getPrice());
       updateProduct.setActive(product.isActive());
       updateProduct.setAvailableStock(product.getAvailableStock());
-      // updateProduct.setCategory_id(product.getCategory_id().getId());
+      // updateProduct.setCategory_id(product.getCategory_id());
+
       productRepository.save(updateProduct);
 
     } else {
