@@ -31,7 +31,8 @@ public class ProductService {
       updateProduct.setPrice(product.getPrice());
       updateProduct.setActive(product.isActive());
       updateProduct.setAvailableStock(product.getAvailableStock());
-      // updateProduct.setCategory_id(product.getCategory_id());
+     
+     // updateProduct.setCategory_id(product.getCategory_id());
 
       productRepository.save(updateProduct);
 
@@ -41,7 +42,7 @@ public class ProductService {
     }
   }
 
-  public void deleteProduct(Long id, String email) {
+  public void deleteProduct(Long id) {
     Optional<Product> exist = productRepository.findById(id);
     if (exist.isPresent()) {
       productRepository.deleteById(id);

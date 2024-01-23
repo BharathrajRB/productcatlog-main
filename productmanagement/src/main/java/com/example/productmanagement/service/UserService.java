@@ -33,7 +33,7 @@ public class UserService {
     public String encodeCredentials(String email, String password) {
         String credentials = email + ":" + password;
         String result = Base64.getEncoder().encodeToString(credentials.getBytes());
-        // System.out.println(result);
+
         return result;
     }
 

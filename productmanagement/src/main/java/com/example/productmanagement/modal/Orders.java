@@ -1,6 +1,9 @@
 package com.example.productmanagement.modal;
 
 import java.math.BigDecimal;
+import java.security.Timestamp;
+
+import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

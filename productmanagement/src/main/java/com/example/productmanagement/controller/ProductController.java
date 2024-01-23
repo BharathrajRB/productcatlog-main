@@ -46,7 +46,8 @@ public class ProductController {
         productService.createProduct(product);
         return new ResponseEntity<>("Product created successfully", HttpStatus.OK);
       } else {
-        return new ResponseEntity<>("You are not authorized to perform this operation", HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>("You are not an admin only authorized can able to perform this operation",
+            HttpStatus.FORBIDDEN);
       }
     } catch (Exception e) {
       return new ResponseEntity<>("Error during product creation", HttpStatus.BAD_REQUEST);
@@ -86,7 +87,7 @@ public class ProductController {
       String password = splitCredentials[1];
       User user = userService.findByEmailAndPassword(email, password);
       if (user != null && "admin".equals(user.getRole_id().getName())) {
-        productService.deleteProduct(id, email);
+        productService.deleteProduct(id);
         return new ResponseEntity<>("deleted successfully", HttpStatus.OK);
       } else {
         return new ResponseEntity<>("you are not allowed to delete the product", HttpStatus.FORBIDDEN);
@@ -100,6 +101,7 @@ public class ProductController {
   @GetMapping("/getProducts")
   List<Product> getProducts() {
     List<Product> products = productService.findAllProducts();
+    // List<Product> products = productRepository.findAll();
     return products;
   }
 

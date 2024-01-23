@@ -3,11 +3,11 @@ package com.example.productmanagement.controller;
 import com.example.productmanagement.modal.CartItem;
 import com.example.productmanagement.modal.OrderItem;
 import com.example.productmanagement.modal.Orders;
-import com.example.productmanagement.modal.PaymentMethod;
 import com.example.productmanagement.modal.Product;
 import com.example.productmanagement.modal.User;
 import com.example.productmanagement.repository.CartItemRepository;
 import com.example.productmanagement.repository.OrderItemRepository;
+import com.example.productmanagement.repository.OrdersRepository;
 import com.example.productmanagement.repository.PaymentMethodRepository;
 import com.example.productmanagement.service.UserService;
 import com.example.productmanagement.service.ProductService;
@@ -49,6 +49,8 @@ public class UserController {
     private PaymentMethodRepository paymentMethodRepository;
     @Autowired
     private OrderItemRepository orderItemRepository;
+    @Autowired
+    private OrdersRepository ordersRepository;
 
     @PostMapping("/register")
     public ResponseEntity<String> registerUser(@RequestBody User user) {
@@ -77,7 +79,7 @@ public class UserController {
                 System.out.println("Encoded Credentials: " + encodedCredentials);
                 return new ResponseEntity<>("Login successful. Role: " + role, HttpStatus.OK);
             } else {
-                return new ResponseEntity<>("Invalid credentials", HttpStatus.UNAUTHORIZED);
+                return new ResponseEntity<>("Register your account..", HttpStatus.UNAUTHORIZED);
             }
         } catch (Exception e) {
             return new ResponseEntity<>("Error during login", HttpStatus.BAD_REQUEST);
@@ -126,7 +128,7 @@ public class UserController {
             }
 
         } catch (Exception e) {
-            return new ResponseEntity<>("Error in handling....", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -143,15 +145,17 @@ public class UserController {
                 List<CartItem> cart = user.getCartItem();
                 if (cart.isEmpty()) {
                     return new ResponseEntity<>("cart is empty", HttpStatus.OK);
-                }
-                BigDecimal totalprice = cart.stream()
-                        .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                } else {
+                    BigDecimal totalprice = cart.stream()
+                            .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                
 
                 Map<String, Object> response = new HashMap<>();
                 response.put("totalprice", totalprice);
-                response.put("cartitems ", cart);
+                response.put("cartitems ", cart);         
                 return new ResponseEntity<>(response, HttpStatus.OK);
+            }
 
             } else {
                 return new ResponseEntity<>("Invalid credentials user not found", HttpStatus.UNAUTHORIZED);
@@ -173,48 +177,53 @@ public class UserController {
             String email = splitCredentials[0];
             String password = splitCredentials[1];
             User user = userService.findByEmailAndPassword(email, password);
-            // Optional<PaymentMethod> paymentMethod =
-            // paymentMethodRepository.findById(paymentMethodId);
-            // Long user_id=user.getId();
-
-            PaymentMethod paymentMethod = paymentMethodRepository.findById(paymentMethodId);
 
             if (user != null) {
-                List<CartItem> cart = user.getCartItem();
-                System.out.println(cart);
-                if (cart.isEmpty()) {
-                    return new ResponseEntity<>("the cart is empty", HttpStatus.BAD_REQUEST);
+                List<CartItem> cartItems = cartItemRepository.findByUser(user);
 
-                } else {
-                    BigDecimal totalPrice = cart.stream().map(item -> item.getProduct().getPrice()
-                            .multiply(BigDecimal.valueOf(item.getQuantity()))).reduce(BigDecimal.ZERO, BigDecimal::add);
+                if (cartItems.isEmpty()) {
+                    return new ResponseEntity<>("Cart is empty", HttpStatus.BAD_REQUEST);
+                }
 
-                    Orders order = new Orders();
-                    order.setUser(user);
-                    order.setTotal_price(totalPrice);
-                    order.setPayment_id(paymentMethod);
-                    order.setShippingAddress(shippingAddress);
-                    order.setOrderdate(new Timestamp(System.currentTimeMillis()));
 
-                    List<OrderItem> orderItems = new ArrayList<>();
-                    for (CartItem cartItem : cart) {
-                        if (cartItem.getQuantity() > cartItem.getProduct().getAvailableStock())
-                            return new ResponseEntity<>("Quantity is higher than available quantity",
-                                    HttpStatus.BAD_REQUEST);
+                BigDecimal totalPrice = cartItems.stream()
+                        .map(item -> item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                Orders order = new Orders();
+                order.setUser(user);
+                order.setTotal_price(totalPrice);
+                order.setPayment_id(paymentMethodRepository.getById(paymentMethodId));
+                order.setShippingAddress(shippingAddress);
+                order.setOrderdate(new Timestamp(System.currentTimeMillis()));
+                ordersRepository.save(order);
+
+                List<OrderItem> orderItems = new ArrayList<>();
+                for (CartItem cartItem : cartItems) {
+                    if (cartItem.getQuantity() > cartItem.getProduct().getAvailableStock()) {
+                        return new ResponseEntity<>("Quantity is higher than available stock", HttpStatus.BAD_REQUEST);
                     }
+
                     OrderItem orderItem = new OrderItem();
                     orderItem.setOrder(order);
-                    orderItemRepository.save(orderItem);
-                    // orderItem.setProduct(cart.ge);
-
+                    orderItem.setProduct(cartItem.getProduct());
+                    orderItem.setQuantity(cartItem.getQuantity());
+                    orderItem.setPrice(cartItem.getProduct().getPrice());
+                    orderItems.add(orderItem);
                 }
+
+                orderItemRepository.saveAll(orderItems);
+
+                cartItemRepository.deleteAll(cartItems);
+
+                return new ResponseEntity<>("Checkout successfully done", HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("Unauthorized user", HttpStatus.UNAUTHORIZED);
             }
-            return new ResponseEntity<>("ok", HttpStatus.OK);
+
         } catch (Exception e) {
-
-            return new ResponseEntity<>("un", HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>("Error during checkout" + e.getMessage(), HttpStatus.BAD_REQUEST);
         }
-
     }
 
 }
