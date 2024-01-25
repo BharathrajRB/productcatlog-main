@@ -2,6 +2,8 @@ package com.example.productmanagement.modal;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -20,14 +22,17 @@ public class User {
 
     private Long id;
     private String firstName;
+  
     private String lastName;
     private String email;
+ 
     private String password;
 
     @ManyToOne
     @JoinColumn(name = "role_id")
+   
     private Role role;
-
+   
     private boolean is_active = true;
 
     public Role getRole() {
@@ -46,6 +51,7 @@ public class User {
         this.cartItem = cartItem;
     }
 
+  
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<CartItem> cartItem;
 

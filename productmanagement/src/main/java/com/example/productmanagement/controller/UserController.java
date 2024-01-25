@@ -61,7 +61,7 @@ public class UserController {
             userService.registerUser(user);
             return new ResponseEntity<>("success👍", HttpStatus.OK);
         } catch (UserAlreadyExistsException e) {
-            return new ResponseEntity<>("User already exists...", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("User already exists 😞...", HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -207,6 +207,7 @@ public class UserController {
                     int remainingStock = cartItem.getProduct().getAvailableStock() - cartItem.getQuantity();
                     cartItem.getProduct().setAvailableStock(remainingStock);
                     productRepository.save(cartItem.getProduct());
+// 
                     OrderItem orderItem = new OrderItem();
                     orderItem.setOrder(order);
                     orderItem.setProduct(cartItem.getProduct());
@@ -229,17 +230,37 @@ public class UserController {
         }
     }
 
+    @GetMapping("/orderHistory")
+    public ResponseEntity<List<Orders>> getOrderHistory(@RequestHeader("Authorization") String authHeader)
+    {
+        try {
+            String credentials = new String(Base64.getDecoder().decode(authHeader.split(" ")[1]));
+            String splitCredentials[] = credentials.split(":");
+            String email = splitCredentials[0];
+            String password = splitCredentials[1];
+            User user = userService.findByEmailAndPassword(email, password);
+            Long user_id = user.getId();
+            if (user != null) {
+                // List<Orders> ordershistory = ordersRepository.findByUser(user) ;
+                List<Orders> orderhis = ordersRepository.findByUserId(user_id);
+                return new ResponseEntity<>(orderhis, HttpStatus.OK);
+
+            } else {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
 }
 
 /*
  * 
- * @PostMapping("/checkout")
- * public ResponseEntity<String> checkout(@RequestHeader("Authorization") String
- * authHeader,
- * 
- * @RequestParam("paymentMethodId") int paymentMethodId,
- * 
- * @RequestParam("shippingAddress") String shippingAddress) {
+ * @GetMapping("/orderhistory")
+ * public ResponseEntity<List<Orders>>
+ * orderHistory(@RequestHeader("Authorization") String authHeader) {
  * try {
  * String credentials = new
  * String(Base64.getDecoder().decode(authHeader.split(" ")[1]));
@@ -249,59 +270,14 @@ public class UserController {
  * User user = userService.findByEmailAndPassword(email, password);
  * 
  * if (user != null) {
- * List<CartItem> cartItems = cartItemRepository.findByUser(user);
- * 
- * if (cartItems.isEmpty()) {
- * return new ResponseEntity<>("Cart is empty", HttpStatus.BAD_REQUEST);
- * }
- * 
- * BigDecimal totalPrice = cartItems.stream()
- * .map(item ->
- * item.getProduct().getPrice().multiply(BigDecimal.valueOf(item.getQuantity()))
- * )
- * .reduce(BigDecimal.ZERO, BigDecimal::add);
- * 
- * Orders order = new Orders();
- * order.setUser(user);
- * order.setTotal_price(totalPrice);
- * order.setPayment_id(paymentMethodRepository.getById(paymentMethodId));
- * order.setShippingAddress(shippingAddress);
- * order.setOrderdate(new Timestamp(System.currentTimeMillis()));
- * ordersRepository.save(order);
- * 
- * List<OrderItem> orderItems = new ArrayList<>();
- * for (CartItem cartItem : cartItems) {
- * if (cartItem.getQuantity() > cartItem.getProduct().getAvailableStock()) {
- * return new ResponseEntity<>("Quantity is higher than available stock",
- * HttpStatus.BAD_REQUEST);
- * }
- * 
- * // Update available stock
- * int remainingStock = cartItem.getProduct().getAvailableStock() -
- * cartItem.getQuantity();
- * cartItem.getProduct().setAvailableStock(remainingStock);
- * productRepository.save(cartItem.getProduct());
- * 
- * OrderItem orderItem = new OrderItem();
- * orderItem.setOrder(order);
- * orderItem.setProduct(cartItem.getProduct());
- * orderItem.setQuantity(cartItem.getQuantity());
- * orderItem.setPrice(cartItem.getProduct().getPrice());
- * orderItems.add(orderItem);
- * }
- * 
- * orderItemRepository.saveAll(orderItems);
- * 
- * cartItemRepository.deleteAll(cartItems);
- * 
- * return new ResponseEntity<>("Checkout successfully done", HttpStatus.OK);
+ * List<Orders> orderHistory = ordersRepository.findByUser(user);
+ * return new ResponseEntity<>(orderHistory, HttpStatus.OK);
  * } else {
- * return new ResponseEntity<>("Unauthorized user", HttpStatus.UNAUTHORIZED);
+ * return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
  * }
  * 
  * } catch (Exception e) {
- * return new ResponseEntity<>("Error during checkout" + e.getMessage(),
- * HttpStatus.BAD_REQUEST);
+ * return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
  * }
  * }
  * 
