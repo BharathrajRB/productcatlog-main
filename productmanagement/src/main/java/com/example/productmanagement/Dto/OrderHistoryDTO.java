@@ -9,7 +9,6 @@ public class OrderHistoryDTO {
     private int quantity;
     private BigDecimal price;
 
-    // Constructors, getters, and setters
 
     public OrderHistoryDTO(Timestamp orderDate, String productName, int quantity, BigDecimal price) {
         this.orderDate = orderDate;
