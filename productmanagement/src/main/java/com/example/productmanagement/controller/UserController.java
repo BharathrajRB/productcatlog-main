@@ -1,5 +1,6 @@
 package com.example.productmanagement.controller;
 
+import com.example.productmanagement.Dto.OrderHistoryDTO;
 import com.example.productmanagement.modal.CartItem;
 import com.example.productmanagement.modal.OrderItem;
 import com.example.productmanagement.modal.Orders;
@@ -22,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -230,29 +232,31 @@ public class UserController {
         }
     }
 
-    @GetMapping("/orderHistory")
-    public ResponseEntity<List<Orders>> getOrderHistory(@RequestHeader("Authorization") String authHeader)
-    {
-        try {
-            String credentials = new String(Base64.getDecoder().decode(authHeader.split(" ")[1]));
-            String splitCredentials[] = credentials.split(":");
-            String email = splitCredentials[0];
-            String password = splitCredentials[1];
-            User user = userService.findByEmailAndPassword(email, password);
-            Long user_id = user.getId();
-            if (user != null) {
-                // List<Orders> ordershistory = ordersRepository.findByUser(user) ;
-                List<Orders> orderhis = ordersRepository.findByUserId(user_id);
-                return new ResponseEntity<>(orderhis, HttpStatus.OK);
+   @GetMapping("/orderhistory")
+public ResponseEntity<List<OrderHistoryDTO>> getOrderHistory(@RequestHeader("Authorization") String authHeader) {
+    try {
+        String credentials = new String(Base64.getDecoder().decode(authHeader.split(" ")[1]));
+        String splitCredentials[] = credentials.split(":");
+        String email = splitCredentials[0];
+        String password = splitCredentials[1];
+        User user = userService.findByEmailAndPassword(email, password);
 
-            } else {
-                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-            }
+        if (user != null) {
+            List<OrderItem> orderItems = orderItemRepository.findByOrderUser(user);
+            List<OrderHistoryDTO> orderHistoryDTOs = orderItems.stream()
+                    .map(orderItem -> new OrderHistoryDTO(orderItem.getOrder().getOrderdate(),
+                            orderItem.getProduct().getName(), orderItem.getQuantity(), orderItem.getPrice()))
+                    .collect(Collectors.toList());
 
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(orderHistoryDTOs, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>( HttpStatus.UNAUTHORIZED);
         }
+    } catch (Exception e) {
+        return new ResponseEntity<>(  HttpStatus.BAD_REQUEST);
     }
+}
+
 
 }
 

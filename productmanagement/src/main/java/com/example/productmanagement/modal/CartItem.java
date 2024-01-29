@@ -1,5 +1,6 @@
 package com.example.productmanagement.modal;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Entity;
@@ -20,7 +21,7 @@ public class CartItem {
     private Product product;
     @ManyToOne
     @JoinColumn(name = "user_id")
-    @JsonIgnore
+    @JsonBackReference
     private User user;
 
     private int quantity;
