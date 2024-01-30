@@ -24,7 +24,7 @@ import com.example.productmanagement.service.ProductService;
 import com.example.productmanagement.service.UserService;
 
 @RestController
-@RequestMapping("/api/product")
+
 public class ProductController {
   @Autowired
   private ProductService productService;
@@ -33,7 +33,7 @@ public class ProductController {
   @Autowired
   private ProductRepository productRepository;
 
-  @PostMapping("/create")
+  @PostMapping("/products")
   public ResponseEntity<String> createProduct(@RequestHeader("Authorization") String authHeader,
       @RequestBody Product product) {
     try {
@@ -46,15 +46,14 @@ public class ProductController {
         productService.createProduct(product);
         return new ResponseEntity<>("Product created successfully", HttpStatus.OK);
       } else {
-        return new ResponseEntity<>("You are not an admin only authorized can able to perform this operation",
-            HttpStatus.FORBIDDEN);
+        return new ResponseEntity<>("You are not authorized to perform this operation", HttpStatus.FORBIDDEN);
       }
     } catch (Exception e) {
       return new ResponseEntity<>("Error during product creation", HttpStatus.BAD_REQUEST);
     }
   }
 
-  @PutMapping("/update/{productId}")
+  @PutMapping("/products/{productId}")
   public ResponseEntity<String> updateProduct(@RequestHeader("Authorization") String authHeader,
       @PathVariable Long productId, @RequestBody Product updaProduct) {
     try {
@@ -76,7 +75,7 @@ public class ProductController {
     }
   }
 
-  @DeleteMapping("/delete/{productId}")
+  @DeleteMapping("/products/{productId}")
   public ResponseEntity<String> deleteProduct(@RequestHeader("Authorization") String authHeader,
       @PathVariable("productId") Long id) {
     try {
@@ -98,11 +97,15 @@ public class ProductController {
     }
   }
 
-  @GetMapping("/getProducts")
+  @GetMapping("/products")
   List<Product> getProducts() {
     List<Product> products = productService.findAllProducts();
-    // List<Product> products = productRepository.findAll();
     return products;
+  }
+
+  @GetMapping("/products/{productId}")
+  public Product getProductById(@PathVariable("productId") Long productId){
+    return productService.getProductById(productId);
   }
 
 }

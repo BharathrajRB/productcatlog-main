@@ -23,17 +23,17 @@ public class User {
 
     private Long id;
     private String firstName;
-
+  
     private String lastName;
     private String email;
-
+ 
     private String password;
 
     @ManyToOne
     @JoinColumn(name = "role_id")
-
+   
     private Role role;
-
+   
     private boolean is_active = true;
 
     public Role getRole() {
@@ -52,6 +52,7 @@ public class User {
         this.cartItem = cartItem;
     }
 
+  
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<CartItem> cartItem;
@@ -112,4 +113,5 @@ public class User {
         this.is_active = is_active;
     }
 
+    
 }

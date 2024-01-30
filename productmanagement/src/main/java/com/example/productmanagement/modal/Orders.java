@@ -1,7 +1,7 @@
 package com.example.productmanagement.modal;
 
 import java.math.BigDecimal;
-
+import java.sql.Timestamp;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -26,7 +26,7 @@ public class Orders {
     private PaymentMethod payment_id;
     private String shippingAddress;
 
-    private java.sql.Timestamp orderdate;
+    private Timestamp orderdate;
 
     public Long getId() {
         return id;
@@ -68,11 +68,11 @@ public class Orders {
         this.shippingAddress = shippingAddress;
     }
 
-    public java.sql.Timestamp getOrderdate() {
+    public Timestamp getOrderdate() {
         return orderdate;
     }
 
-    public void setOrderdate(java.sql.Timestamp orderdate) {
+    public void setOrderdate(Timestamp orderdate) {
         this.orderdate = orderdate;
     }
 
