@@ -92,6 +92,31 @@ public class UserController {
 
 
 
+    // @GetMapping("/orderhistory")
+    // public ResponseEntity<List<OrderHistoryDTO>> getOrderHistory(@RequestHeader("Authorization") String authHeader) {
+    //     try {
+    //         String credentials = new String(Base64.getDecoder().decode(authHeader.split(" ")[1]));
+    //         String splitCredentials[] = credentials.split(":");
+    //         String email = splitCredentials[0];
+    //         String password = splitCredentials[1];
+    //         User user = userService.findByEmailAndPassword(email, password);
+
+    //         if (user != null) {
+    //             List<OrderItem> orderItems = orderItemRepository.findByOrderUser(user);
+    //             List<Orders> orders = ordersRepository.findByUser(user);
+    //             List<OrderHistoryDTO> orderHistoryDTO = orderItems.stream()
+    //                     .map(orderItem -> new OrderHistoryDTO(orderItem.getOrder().getOrderdate(),
+    //                             orderItem.getProduct().getName(), orderItem.getQuantity(), orderItem.getPrice()))
+    //                     .collect(Collectors.toList());
+
+    //             return new ResponseEntity<>(orderHistoryDTO, HttpStatus.OK);
+    //         } else {
+    //             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    //         }
+    //     } catch (Exception e) {
+    //         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    //     }
+    // }
 
 }
 

@@ -4,17 +4,27 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 public class OrderHistoryDTO {
+    private Long orderId;
     private Timestamp orderDate;
-    private String productName;
-    private int quantity;
+    private String payment_id;
     private BigDecimal price;
+ 
 
-
-    public OrderHistoryDTO(Timestamp orderDate, String productName, int quantity, BigDecimal price) {
+    public OrderHistoryDTO(Long orderId, Timestamp orderDate, BigDecimal price, String payment_id) {
+        this.orderId = orderId;
         this.orderDate = orderDate;
-        this.productName = productName;
-        this.quantity = quantity;
         this.price = price;
+        this.payment_id = payment_id;
+    }
+
+   
+
+    public Long getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
     }
 
     public Timestamp getOrderDate() {
@@ -25,29 +35,20 @@ public class OrderHistoryDTO {
         this.orderDate = orderDate;
     }
 
-    public String getProductName() {
-        return productName;
+    public String getPayment_id() {
+        return payment_id;
     }
 
-    public void setProductName(String productName) {
-        this.productName = productName;
+    public void setPayment_id(String payment_id) {
+        this.payment_id = payment_id;
     }
 
-    public int getQuantity() {
-        return quantity;
-    }
+    // public BigDecimal getPrice() {
+    // return price;
+    // }
 
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
+    // public void setPrice(BigDecimal price) {
+    // this.price = price;
+    // }
 
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
-    
 }
