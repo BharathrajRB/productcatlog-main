@@ -2,13 +2,16 @@ package com.example.productmanagement.modal;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -25,6 +28,18 @@ public class Orders {
     @JoinColumn(name = "payment_id")
     private PaymentMethod payment_id;
     private String shippingAddress;
+
+           @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+       private List<OrderItem> orderItems;
+
+
+    public List<OrderItem> getOrderItems() {
+            return orderItems;
+        }
+
+        public void setOrderItems(List<OrderItem> orderItems) {
+            this.orderItems = orderItems;
+        }
 
     private Timestamp orderdate;
 
